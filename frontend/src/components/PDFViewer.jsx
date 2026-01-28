@@ -3,21 +3,42 @@
  * 
  * Displays PDF and highlights matched text bounds
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const PDFViewer = ({ pdfFile, matches }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [pdfUrl, setPdfUrl] = useState(null);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Load PDF file
   const handleFileLoad = (file) => {
     if (file) {
+      // Revoke previous URL to prevent memory leak
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+      }
+      
       const url = URL.createObjectURL(file);
       setPdfUrl(url);
+      // Note: In a real implementation, we'd use a PDF library to get actual page count
+      setTotalPages(10); // Placeholder - should be from PDF metadata
     }
   };
 
+  // Clean up blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+      }
+    };
+  }, [pdfUrl]);
+
   // Render matches as overlays
+  // Note: This is a simplified visualization. In production, you'd need to:
+  // 1. Use a proper PDF library (like react-pdf or pdf.js)
+  // 2. Transform PDF coordinates to viewport coordinates
+  // 3. Handle zoom and scaling
   const renderMatches = () => {
     if (!matches || matches.length === 0) return null;
 
@@ -28,7 +49,7 @@ const PDFViewer = ({ pdfFile, matches }) => {
         const confidence = match.confidence;
         
         // Calculate color based on confidence
-        const opacity = confidence / 200 + 0.3; // 0.3 to 0.8 opacity
+        const opacity = confidence / 100 * 0.5 + 0.3; // 0.3 to 0.8 opacity
         const color = confidence >= 90 ? 'green' : confidence >= 70 ? 'orange' : 'red';
         
         return (
@@ -68,9 +89,10 @@ const PDFViewer = ({ pdfFile, matches }) => {
             >
               Previous
             </button>
-            <span style={styles.pageNumber}>Page {currentPage + 1}</span>
+            <span style={styles.pageNumber}>Page {currentPage + 1} / {totalPages}</span>
             <button
-              onClick={() => setCurrentPage(currentPage + 1)}
+              onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+              disabled={currentPage >= totalPages - 1}
               style={styles.button}
             >
               Next
@@ -91,6 +113,10 @@ const PDFViewer = ({ pdfFile, matches }) => {
               {renderMatches()}
             </div>
           </div>
+          <p style={styles.note}>
+            Note: Match coordinates shown are from PDF space. 
+            For accurate visualization, use a PDF.js-based viewer in production.
+          </p>
         </div>
       ) : (
         <div style={styles.placeholder}>
@@ -192,6 +218,14 @@ const styles = {
     backgroundColor: '#2a2a2a',
     borderRadius: '8px',
     color: '#fff',
+  },
+  note: {
+    marginTop: '10px',
+    padding: '10px',
+    fontSize: '12px',
+    color: '#888',
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
 };
 

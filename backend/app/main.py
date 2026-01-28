@@ -29,9 +29,10 @@ app = FastAPI(
 )
 
 # CORS middleware for frontend access
+# WARNING: In production, replace "*" with specific frontend URLs
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify actual frontend URLs
+    allow_origins=["http://localhost:3000"],  # Specify allowed origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -81,20 +82,28 @@ async def upload_pdf(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="File must be a PDF")
     
     # Save file temporarily
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
+    tmp_file = None
+    try:
+        tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
         content = await file.read()
         tmp_file.write(content)
+        tmp_file.close()
         tmp_path = tmp_file.name
-    
-    # Store path with generated ID
-    file_id = Path(tmp_path).stem
-    pdf_storage[file_id] = tmp_path
-    
-    return {
-        "file_id": file_id,
-        "filename": file.filename,
-        "message": "PDF uploaded successfully"
-    }
+        
+        # Store path with generated ID
+        file_id = Path(tmp_path).stem
+        pdf_storage[file_id] = tmp_path
+        
+        return {
+            "file_id": file_id,
+            "filename": file.filename,
+            "message": "PDF uploaded successfully"
+        }
+    except Exception as e:
+        # Clean up temporary file if upload fails
+        if tmp_file and os.path.exists(tmp_file.name):
+            os.remove(tmp_file.name)
+        raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}")
 
 
 @app.get("/api/extract-text/{file_id}")
@@ -285,4 +294,6 @@ async def cleanup_pdf(file_id: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Bind to localhost for security during development
+    # In production, configure host/port via environment variables
+    uvicorn.run(app, host="127.0.0.1", port=8000)

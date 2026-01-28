@@ -5,81 +5,118 @@
  */
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+// Use environment variable for API URL, fallback to localhost
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 class APIService {
   /**
    * Upload PDF file
    */
   async uploadPDF(file) {
-    const formData = new FormData();
-    formData.append('file', file);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
 
-    const response = await axios.post(`${API_BASE_URL}/upload-pdf`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+      const response = await axios.post(`${API_BASE_URL}/upload-pdf`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-    return response.data;
+      return response.data;
+    } catch (error) {
+      console.error('Error uploading PDF:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to upload PDF');
+    }
   }
 
   /**
    * Extract text from uploaded PDF
    */
   async extractText(fileId) {
-    const response = await axios.get(`${API_BASE_URL}/extract-text/${fileId}`);
-    return response.data;
+    try {
+      const response = await axios.get(`${API_BASE_URL}/extract-text/${fileId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error extracting text:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to extract text');
+    }
   }
 
   /**
    * Extract entities using LLM
    */
   async extractEntities(text, entityTypes = null) {
-    const response = await axios.post(`${API_BASE_URL}/extract-entities`, {
-      text,
-      entity_types: entityTypes,
-    });
-    return response.data;
+    try {
+      const response = await axios.post(`${API_BASE_URL}/extract-entities`, {
+        text,
+        entity_types: entityTypes,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error extracting entities:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to extract entities');
+    }
   }
 
   /**
    * Extract named entities with categories
    */
   async extractNamedEntities(text) {
-    const response = await axios.post(`${API_BASE_URL}/extract-named-entities`, {
-      text,
-    });
-    return response.data;
+    try {
+      const response = await axios.post(`${API_BASE_URL}/extract-named-entities`, {
+        text,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error extracting named entities:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to extract named entities');
+    }
   }
 
   /**
    * Match entity in PDF
    */
   async matchEntity(fileId, entity, strategy = 'exact', options = {}) {
-    const response = await axios.post(`${API_BASE_URL}/match/${fileId}`, {
-      entity,
-      strategy,
-      threshold: options.threshold || 80.0,
-      context_window: options.context_window || 3,
-    });
-    return response.data;
+    try {
+      const response = await axios.post(`${API_BASE_URL}/match/${fileId}`, {
+        entity,
+        strategy,
+        threshold: options.threshold || 80.0,
+        context_window: options.context_window || 3,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error matching entity:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to match entity');
+    }
   }
 
   /**
    * Get available strategies
    */
   async getStrategies() {
-    const response = await axios.get(`${API_BASE_URL}/strategies`);
-    return response.data;
+    try {
+      const response = await axios.get(`${API_BASE_URL}/strategies`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting strategies:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to get strategies');
+    }
   }
 
   /**
    * Clean up uploaded PDF
    */
   async cleanupPDF(fileId) {
-    const response = await axios.delete(`${API_BASE_URL}/cleanup/${fileId}`);
-    return response.data;
+    try {
+      const response = await axios.delete(`${API_BASE_URL}/cleanup/${fileId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error cleaning up PDF:', error);
+      // Don't throw error for cleanup failures
+      return null;
+    }
   }
 }
 

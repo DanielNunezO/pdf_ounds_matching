@@ -45,6 +45,11 @@ class EntityExtractor:
                 "Set OPENAI_API_KEY environment variable or pass api_key parameter."
             )
         
+        # Limit text length to prevent excessive API costs and token limit issues
+        max_length = 4000  # Approximate token limit safety margin
+        if len(text) > max_length:
+            text = text[:max_length] + "..."
+        
         # Build prompt
         entity_types_str = ", ".join(entity_types) if entity_types else "all relevant entities"
         
@@ -77,8 +82,10 @@ Return only the JSON array, no additional text."""
             
             return entities if isinstance(entities, list) else []
             
-        except json.JSONDecodeError:
-            # Fallback: try to extract entities from non-JSON response
+        except json.JSONDecodeError as e:
+            # Log the error and return empty list
+            print(f"Warning: Failed to parse LLM response as JSON: {str(e)}")
+            print(f"Response content: {content}")
             return []
         except Exception as e:
             raise Exception(f"Error extracting entities: {str(e)}")
@@ -95,6 +102,11 @@ Return only the JSON array, no additional text."""
         """
         if not self.client:
             raise ValueError("OpenAI API key not configured")
+        
+        # Limit text length to prevent excessive API costs
+        max_length = 4000
+        if len(text) > max_length:
+            text = text[:max_length] + "..."
         
         prompt = f"""Extract named entities from the following text and categorize them.
 Return the result as a JSON object with entity types as keys and arrays of entity values.
@@ -128,7 +140,9 @@ Return only the JSON object, no additional text."""
             
             return entities if isinstance(entities, dict) else {}
             
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
+            print(f"Warning: Failed to parse LLM response as JSON: {str(e)}")
+            print(f"Response content: {content}")
             return {}
         except Exception as e:
             raise Exception(f"Error extracting named entities: {str(e)}")
