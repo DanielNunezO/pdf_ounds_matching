@@ -2,8 +2,8 @@
 Tests for strategy factory
 """
 import pytest
-from backend.app.strategy_factory import MatchingStrategyFactory
-from backend.app.matching_strategies import (
+from app.strategy_factory import MatchingStrategyFactory
+from app.matching_strategies import (
     ExactMatchingStrategy,
     FuzzyMatchingStrategy,
     ContextualMatchingStrategy

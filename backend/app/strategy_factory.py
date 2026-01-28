@@ -4,12 +4,21 @@ Matching Strategy Factory
 Implements Factory Pattern for creating matching strategies.
 """
 from typing import Dict, Any
-from .matching_strategies import (
-    MatchingStrategy,
-    ExactMatchingStrategy,
-    FuzzyMatchingStrategy,
-    ContextualMatchingStrategy
-)
+
+try:
+    from .matching_strategies import (
+        MatchingStrategy,
+        ExactMatchingStrategy,
+        FuzzyMatchingStrategy,
+        ContextualMatchingStrategy
+    )
+except ImportError:
+    from matching_strategies import (
+        MatchingStrategy,
+        ExactMatchingStrategy,
+        FuzzyMatchingStrategy,
+        ContextualMatchingStrategy
+    )
 
 
 class MatchingStrategyFactory:

@@ -2,12 +2,12 @@
 Tests for matching strategies
 """
 import pytest
-from backend.app.matching_strategies import (
+from app.matching_strategies import (
     ExactMatchingStrategy,
     FuzzyMatchingStrategy,
     ContextualMatchingStrategy
 )
-from backend.app.pdf_extractor import TextBound
+from app.pdf_extractor import TextBound
 
 
 @pytest.fixture

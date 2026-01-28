@@ -6,7 +6,11 @@ Implements Strategy Pattern for different text matching algorithms.
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional
 from rapidfuzz import fuzz, process
-from .pdf_extractor import TextBound
+
+try:
+    from .pdf_extractor import TextBound
+except ImportError:
+    from pdf_extractor import TextBound
 
 
 class MatchResult:

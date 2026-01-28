@@ -12,9 +12,14 @@ import tempfile
 import os
 from pathlib import Path
 
-from .pdf_extractor import PDFExtractor
-from .llm_extractor import EntityExtractor
-from .strategy_factory import MatchingStrategyFactory
+try:
+    from .pdf_extractor import PDFExtractor
+    from .llm_extractor import EntityExtractor
+    from .strategy_factory import MatchingStrategyFactory
+except ImportError:
+    from pdf_extractor import PDFExtractor
+    from llm_extractor import EntityExtractor
+    from strategy_factory import MatchingStrategyFactory
 
 
 app = FastAPI(
